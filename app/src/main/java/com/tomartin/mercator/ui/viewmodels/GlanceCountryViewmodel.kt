@@ -19,11 +19,15 @@ class GlanceCountryViewmodel(): ViewModel() {
     private val _uiState = MutableStateFlow(GlanceScreenUiState())
     val uiState: StateFlow<GlanceScreenUiState> = _uiState.asStateFlow()
 
-    suspend fun fetchAtlasData() {
+    init {
         viewModelScope.launch {
-            _uiState.update { currentState ->
-                currentState.copy(atlasData = AtlasRepository().fetchAtGlanceCountryData())
-            }
+            fetchAtlasData()
+        }
+    }
+
+    private suspend fun fetchAtlasData() {
+        _uiState.update { currentState ->
+            currentState.copy(atlasData = AtlasRepository().fetchAtGlanceCountryData())
         }
     }
 }
