@@ -2,6 +2,7 @@ package com.tomartin.mercator.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -37,28 +39,32 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.tomartin.mercator.ui.viewmodels.GlanceCountryViewmodel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GlanceCountryScreen(glanceCountryViewmodel: GlanceCountryViewmodel = viewModel()) {
+fun GlanceCountryScreen(
+    navHostController: NavHostController,
+    glanceCountryViewmodel: GlanceCountryViewmodel = viewModel(),
+) {
     var text by rememberSaveable {
         mutableStateOf("")
     }
     var active by rememberSaveable {
         mutableStateOf(false)
     }
+    val scrollState = rememberLazyListState()
     val uiState by glanceCountryViewmodel.uiState.collectAsState()
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            contentAlignment = Alignment.TopCenter
         ) {
             SearchBar(
                 query = text,
@@ -82,13 +88,17 @@ fun GlanceCountryScreen(glanceCountryViewmodel: GlanceCountryViewmodel = viewMod
                 
             }
             LazyColumn(
-                modifier = Modifier.padding(top = 10.dp, start = 8.dp, end = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.padding(start = 12.dp, end = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                state = scrollState
             ) {
+                item {
+                    Spacer(modifier = Modifier.height(100.dp))
+                }
                 uiState.atlasData?.let { glanceCountryModels ->
                     items(glanceCountryModels.size) {
                         Column {
-                            Row(modifier = Modifier.clickable {  }) {
+                            Row(modifier = Modifier.clickable { navHostController.navigate("detailedScreen") }) {
                                 AsyncImage(
                                     model = glanceCountryModels[it].flags.png,
                                     contentDescription = null,

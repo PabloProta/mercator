@@ -14,7 +14,7 @@ data class GlanceScreenUiState(
     val atlasData: List<GlanceCountryModel>? = null
 )
 
-class GlanceCountryViewmodel(): ViewModel() {
+class GlanceCountryViewmodel : ViewModel() {
 
     private val _uiState = MutableStateFlow(GlanceScreenUiState())
     val uiState: StateFlow<GlanceScreenUiState> = _uiState.asStateFlow()
