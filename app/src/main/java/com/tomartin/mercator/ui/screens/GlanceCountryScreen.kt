@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -31,12 +32,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -66,41 +70,61 @@ fun GlanceCountryScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ) {
-            SearchBar(
-                query = text,
-                onQueryChange = { text = it },
-                onSearch = { active = true },
-                active = active,
-                onActiveChange = { active = it },
-                placeholder = { Text(text = "Search countries") },
-                leadingIcon = {
-                    if (!active)
-                        IconButton(onClick = { /*TODO*/ }) {
-                            Icon(imageVector = Icons.Rounded.Menu, contentDescription = null)
-                        }
-                    else
-                        IconButton(onClick = { active = false }) {
-                            Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
-                        }
-                },
-                trailingIcon = { Icon(imageVector = Icons.Rounded.Search, contentDescription = null) }
-            ) {
-                
+            var searchBarSize by remember {
+                mutableStateOf(0)
             }
+            Column(
+                modifier = Modifier.onGloballyPositioned {
+                    searchBarSize = it.size.height
+                },
+            ) {
+                SearchBar(
+                    query = text,
+                    onQueryChange = { text = it },
+                    onSearch = { active = true },
+                    active = active,
+                    onActiveChange = { active = it },
+                    placeholder = { Text(text = "Search countries") },
+                    leadingIcon = {
+                        if (!active)
+                            IconButton(onClick = { /*TODO*/ }) {
+                                Icon(imageVector = Icons.Rounded.Menu, contentDescription = null)
+                            }
+                        else
+                            IconButton(onClick = { active = false }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                    contentDescription = null
+                                )
+                            }
+                    },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Search,
+                            contentDescription = null
+                        )
+                    }
+                ) {
+
+                }
+            }
+
             LazyColumn(
                 modifier = Modifier.padding(start = 12.dp, end = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 state = scrollState
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(100.dp))
+                    val density = LocalDensity.current
+                    val sizeToDp = searchBarSize / density.density
+                    Spacer(modifier = Modifier.height(sizeToDp.dp + 20.dp))
                 }
                 uiState.atlasData?.let { glanceCountryModels ->
-                    items(glanceCountryModels.size) {
+                    items(glanceCountryModels, key = { it.population }) { item ->
                         Column {
                             Row(modifier = Modifier.clickable { navHostController.navigate("detailedScreen") }) {
                                 AsyncImage(
-                                    model = glanceCountryModels[it].flags.png,
+                                    model = item.flags.png,
                                     contentDescription = null,
                                     modifier = Modifier
                                         .clip(CircleShape)
@@ -114,8 +138,8 @@ fun GlanceCountryScreen(
                                         .height(75.dp),
                                     verticalArrangement = Arrangement.Center
                                 ) {
-                                    Text(text = glanceCountryModels[it].name.common)
-                                    Text(text = "%,d".format(glanceCountryModels[it].population))
+                                    Text(text = item.name.common)
+                                    Text(text = "%,d".format(item.population))
                                 }
                             }
                             Spacer(modifier = Modifier.height(5.dp))
